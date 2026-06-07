@@ -1,0 +1,37 @@
+{
+  "name": "@gridz/server",
+  "version": "0.1.0",
+  "description": "Gridz reference API server (Fastify + OpenAPI 3.1). No key custody — write endpoints validate signed attestations.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "bin": { "gridz-server": "./dist/server.js" },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts src/server.ts --format esm --dts --clean && node scripts/gen-openapi.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint src",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@fastify/swagger": "^9.4.0",
+    "@gridz/core": "workspace:*",
+    "@gridz/sinks": "workspace:*",
+    "fastify": "^5.2.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.10.2",
+    "@vitest/coverage-v8": "^2.1.8",
+    "oxlint": "^0.15.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

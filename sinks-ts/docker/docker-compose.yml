@@ -1,0 +1,34 @@
+# Local database stack for the gated sink integration tests.
+#   docker compose -f packages/sinks-ts/docker/docker-compose.yml up -d
+# then export the DSNs and run `pnpm --filter @gridz/sinks test`.
+services:
+  postgres:
+    image: postgres:17
+    environment: { POSTGRES_PASSWORD: gridz, POSTGRES_DB: gridz }
+    ports: ["5432:5432"]
+  mysql:
+    image: mysql:9
+    environment: { MYSQL_ROOT_PASSWORD: gridz, MYSQL_DATABASE: gridz }
+    ports: ["3306:3306"]
+  redis:
+    image: redis:7
+    ports: ["6379:6379"]
+  mongo:
+    image: mongo:8
+    ports: ["27017:27017"]
+  neo4j:
+    image: neo4j:5
+    environment: { NEO4J_AUTH: neo4j/password }
+    ports: ["7687:7687", "7474:7474"]
+  minio:
+    image: minio/minio
+    command: server /data
+    environment: { MINIO_ROOT_USER: gridz, MINIO_ROOT_PASSWORD: gridzgridz }
+    ports: ["9000:9000"]
+# Export for the tests, e.g.:
+#   GRIDZ_PG_DSN=postgres://postgres:gridz@localhost:5432/gridz
+#   GRIDZ_MYSQL_DSN=mysql://root:gridz@localhost:3306/gridz
+#   GRIDZ_REDIS_URL=redis://localhost:6379
+#   GRIDZ_MONGO_URI=mongodb://localhost:27017
+#   GRIDZ_NEO4J_URL=bolt://localhost:7687
+#   GRIDZ_S3_BUCKET=gridz  (point AWS SDK at the MinIO endpoint)

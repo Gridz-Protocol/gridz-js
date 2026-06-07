@@ -1,0 +1,16 @@
+node_modules/
+**/dist/
+**/coverage/
+**/.turbo/
+*.tsbuildinfo
+.DS_Store
+*.log
+.env
+.env.*
+# python
+**/__pycache__/
+**/.venv/
+**/.pytest_cache/
+**/.hypothesis/
+**/*.egg-info/
+.coverage

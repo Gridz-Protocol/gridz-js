@@ -1,0 +1,81 @@
+/* Gridz reference theme. Consumes the CSS variables emitted by themeToCssVars. */
+.gridz-root {
+  background: var(--gridz-bg);
+  color: var(--gridz-text);
+  min-height: 100%;
+  padding: 20px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.gridz-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.gridz-header__name {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+.gridz-header__subject {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
+}
+.gridz-attribution {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gridz-accent);
+}
+.gridz-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  grid-auto-rows: minmax(96px, auto);
+}
+.gridz-cell {
+  background: var(--gridz-card-bg);
+  border: 1px solid var(--gridz-card-border);
+  border-radius: var(--gridz-card-radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.15s ease;
+}
+.gridz-cell:hover {
+  transform: translateY(-2px);
+}
+.gridz-cell__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.gridz-cell__key {
+  font-size: 11px;
+  opacity: 0.6;
+}
+.gridz-badge {
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: transparent;
+}
+.gridz-badge--green { color: #28c76f; }
+.gridz-badge--amber { color: #ffab00; }
+.gridz-badge--red { color: #ea5455; }
+.gridz-badge--muted { color: var(--gridz-text); opacity: 0.4; }
+.gridz-link { color: var(--gridz-accent); text-decoration: none; }
+.gridz-stats { display: grid; gap: 6px; margin: 0; }
+.gridz-stats__item { display: flex; justify-content: space-between; }
+.gridz-generic { font-size: 12px; white-space: pre-wrap; word-break: break-word; margin: 0; }
