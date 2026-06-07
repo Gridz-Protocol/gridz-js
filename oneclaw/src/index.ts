@@ -29,6 +29,8 @@ export interface OneClawConfig {
   apiBase?: string;
   /** Optional TEE-backed signing host (shroud.1claw.xyz / intents.1claw.xyz). */
   signingHost?: string;
+  /** 1claw vault UUID — default for oneclaw://vault/… sink credential URIs. */
+  vaultId?: string;
 }
 
 export function loadOneClawConfig(env: Record<string, string | undefined> = process.env): OneClawConfig | null {
@@ -43,7 +45,16 @@ export function loadOneClawConfig(env: Record<string, string | undefined> = proc
     chainId: Number(env.ONECLAW_CHAIN_ID ?? "11155111"),
     apiBase: env.ONECLAW_API_BASE ?? DEFAULT_ONECLAW_API_BASE,
     ...(env.ONECLAW_SIGNING_HOST ? { signingHost: env.ONECLAW_SIGNING_HOST } : {}),
+    ...(env.ONECLAW_VAULT_ID ? { vaultId: env.ONECLAW_VAULT_ID } : {}),
   };
+}
+
+/** Build a `oneclaw://vault/<id>/<path>` URI using config or `ONECLAW_VAULT_ID`. */
+export function oneClawVaultUri(path: string, vaultId?: string): string {
+  const id = vaultId ?? process.env.ONECLAW_VAULT_ID;
+  if (!id) throw new OneClawError("ONECLAW_VAULT_ID required for vault URIs", "no_vault_id");
+  const clean = path.replace(/^\/+/, "");
+  return `oneclaw://vault/${id}/${clean}`;
 }
 
 function bigintReplacer(_k: string, v: unknown): unknown {

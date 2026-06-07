@@ -12,6 +12,7 @@ import {
   OneClawError,
   eip712DomainAllowlistSnippet,
   loadOneClawConfig,
+  oneClawVaultUri,
   type OneClawConfig,
 } from "../src/index.js";
 import { MockOneClawSigner } from "./__fixtures__/mock-signer.js";
@@ -183,6 +184,17 @@ describe("allowlist snippet + config", () => {
       ONECLAW_SIGNING_HOST: "https://intents.1claw.xyz",
     });
     expect(cfg).toMatchObject({ agentId: "a", chainId: 8453, signingHost: "https://intents.1claw.xyz" });
+  });
+
+  it("loads vaultId and builds oneclaw://vault URIs", () => {
+    const cfg = loadOneClawConfig({
+      ONECLAW_AGENT_ID: "a",
+      ONECLAW_AGENT_KEY: "ocv_x",
+      ONECLAW_ADDRESS: hsm.address,
+      ONECLAW_VAULT_ID: "vault-uuid-1",
+    });
+    expect(cfg?.vaultId).toBe("vault-uuid-1");
+    expect(oneClawVaultUri("db/dsn", "vault-uuid-1")).toBe("oneclaw://vault/vault-uuid-1/db/dsn");
   });
 });
 
