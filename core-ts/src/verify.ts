@@ -3,17 +3,21 @@ import { base64urlnopad } from "@scure/base";
 import { ed25519 } from "@noble/curves/ed25519";
 import type { AttestationRef, Cell, Grid, Hex } from "./types.js";
 import { algoForFormat, valueHash } from "./hash.js";
-import { merkleRoot } from "./merkle.js";
+import { merkleRoot, ZERO32 } from "./merkle.js";
 import { decodeBundle, deserializeMessage, type Bundle } from "./attest.js";
 import { publicKeyFromDidKey } from "./signer.js";
+import { verifyEasOnchainCell, type EasVerifyContext } from "./verifyEas.js";
 
 export type VerifyStatus = "verified" | "failed" | "expired" | "unsupported";
+
+export type VerifyProof = "inline" | "eas-onchain" | "manifest";
 
 export interface VerifyResult {
   ok: boolean;
   status: VerifyStatus;
   reason?: string;
   attester?: string;
+  proof?: VerifyProof;
 }
 
 export interface VerifyContext {
@@ -22,6 +26,8 @@ export interface VerifyContext {
   allowDelegated?: boolean;
   /** Override "now" for deterministic tests. */
   now?: Date;
+  /** When set, `eas-onchain` cells are verified via EAS + resolver RPC reads. */
+  eas?: EasVerifyContext;
 }
 
 function fail(reason: string, attester?: string): VerifyResult {
@@ -119,11 +125,30 @@ export async function verifyAttestation(
   const t = timeCheck(att, ctx.now ?? new Date());
   if (t) return t;
 
-  return { ok: true, status: "verified", attester: att.attester };
+  return { ok: true, status: "verified", attester: att.attester, proof: "inline" };
+}
+
+function isResolverManifestRoot(att: AttestationRef): boolean {
+  return (
+    !att.payload &&
+    att.format === "eip712-raw" &&
+    att.uid === ZERO32 &&
+    att.value_hash === ZERO32
+  );
 }
 
 /** Verify a single cell. Also enforces the cell-level expires_at. */
 export async function verifyCell(cell: Cell, ctx: VerifyContext = {}): Promise<VerifyResult> {
+  const att = cell.attestation;
+  if (!att.payload && att.format === "eas-onchain" && ctx.eas) {
+    const easResult = await verifyEasOnchainCell(cell, ctx.eas, ctx.now);
+    if (!easResult.ok) return easResult;
+    if (cell.expires_at && new Date(cell.expires_at) < (ctx.now ?? new Date())) {
+      return { ok: false, status: "expired", reason: "cell-expired", attester: easResult.attester };
+    }
+    return easResult;
+  }
+
   const base = await verifyAttestation(cell.attestation, cell.value, ctx);
   if (!base.ok) return base;
   if (cell.expires_at && new Date(cell.expires_at) < (ctx.now ?? new Date())) {
@@ -150,6 +175,16 @@ export async function verifyGrid(grid: Grid, ctx: VerifyContext = {}): Promise<G
 
 async function verifyRoot(grid: Grid, ctx: VerifyContext): Promise<VerifyResult> {
   const att = grid.root_attestation;
+  if (isResolverManifestRoot(att)) {
+    return {
+      ok: true,
+      status: "verified",
+      proof: "manifest",
+      reason: "per-cell EAS attestations (resolver manifest; no bundled root)",
+      attester: att.attester,
+    };
+  }
+
   const algo = algoForFormat(att.format);
   const computed = merkleRoot(
     algo,
@@ -185,5 +220,5 @@ async function verifyRoot(grid: Grid, ctx: VerifyContext): Promise<VerifyResult>
 
   const t = timeCheck(att, ctx.now ?? new Date());
   if (t) return t;
-  return { ok: true, status: "verified", attester: att.attester };
+  return { ok: true, status: "verified", attester: att.attester, proof: "inline" };
 }

@@ -39,6 +39,14 @@ export {
   verifyGrid,
   type VerifyResult,
   type VerifyStatus,
+  type VerifyProof,
   type VerifyContext,
   type GridVerifyResult,
 } from "./verify.js";
+export {
+  verifyEasOnchainCell,
+  cellDisplayValue,
+  easAttesterDid,
+  type EasVerifyContext,
+  type EasReadContract,
+} from "./verifyEas.js";

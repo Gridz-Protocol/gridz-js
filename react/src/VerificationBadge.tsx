@@ -18,8 +18,8 @@ const META: Record<BadgeStatus, { icon: string; label: string; tone: string }> =
 };
 
 /**
- * Per-cell verification badge. Green = verified (onchain or offchain), with an
- * HSM key glyph for eip712-oneclaw; amber = expired/unverifiable; red = failed.
+ * Per-cell verification badge. Green = verified (EIP-712 inline or EAS on-chain),
+ * with an HSM key glyph for eip712-oneclaw; amber = expired/unverifiable; red = failed.
  */
 export function VerificationBadge({ status, format, onClick }: BadgeProps): JSX.Element {
   const meta = META[status];
