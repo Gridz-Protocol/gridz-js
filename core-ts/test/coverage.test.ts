@@ -156,6 +156,52 @@ describe("verifier — unsupported, time bounds, and cell-level expiry", () => {
     expect(r).toMatchObject({ ok: false, status: "expired", reason: "cell-expired" });
   });
 
+  it("verifyGrid uses sequential EAS verification when eas context is set", async () => {
+    const value = "demo";
+    const grid = {
+      schema_version: SCHEMA_VERSION,
+      subject: { type: "human" as const, did: "did:ens:demo.gridz.eth", ens: "demo.gridz.eth", display_name: "demo" },
+      theme: exampleTheme,
+      cells: [
+        {
+          id: "alias",
+          key: "alias",
+          value,
+          position: pos,
+          size: "1x1" as const,
+          is_visible: true,
+          attestation: {
+            format: "eas-onchain" as const,
+            uid: "0x" + "ab".repeat(32),
+            uri: "eas://x",
+            attester: "did:pkh:eip155:8453:0x0000000000000000000000000000000000000001",
+            iat: NOW.toISOString(),
+            value_hash: valueHash("keccak256", value),
+          },
+        },
+      ],
+      root_attestation: {
+        format: "eip712-raw" as const,
+        uid: ZERO32,
+        uri: "ens://demo.gridz.eth",
+        attester: "demo.gridz.eth",
+        iat: NOW.toISOString(),
+        value_hash: ZERO32,
+      },
+    };
+    const r = await verifyGrid(grid, {
+      eas: {
+        chainId: 8453,
+        easAddress: "0x4200000000000000000000000000000000000021",
+        readContract: async () => {
+          throw new Error("rpc-down");
+        },
+      },
+    });
+    expect(r.cells[0]?.result.reason).toBe("eas-fetch-failed");
+    expect(r.root.proof).toBe("manifest");
+  });
+
   it("rejects a root payload that was swapped for a different signature", async () => {
     const s = exampleEip712Signer();
     const subject = await exampleSubject(s);

@@ -166,9 +166,17 @@ export interface GridVerifyResult {
 /** Verify every cell independently, then verify the root commits to exactly this cell set. */
 export async function verifyGrid(grid: Grid, ctx: VerifyContext = {}): Promise<GridVerifyResult> {
   const subjectCtx: VerifyContext = { subjectDid: grid.subject.did, ...ctx };
-  const cells = await Promise.all(
-    grid.cells.map(async (c) => ({ id: c.id, key: c.key, result: await verifyCell(c, subjectCtx) })),
-  );
+  // EAS verification hits RPC per cell — run sequentially to avoid serverless rate limits.
+  const cells = ctx.eas
+    ? []
+    : await Promise.all(
+        grid.cells.map(async (c) => ({ id: c.id, key: c.key, result: await verifyCell(c, subjectCtx) })),
+      );
+  if (ctx.eas) {
+    for (const c of grid.cells) {
+      cells.push({ id: c.id, key: c.key, result: await verifyCell(c, subjectCtx) });
+    }
+  }
   const root = await verifyRoot(grid, subjectCtx);
   return { ok: root.ok && cells.every((c) => c.result.ok), cells, root };
 }
